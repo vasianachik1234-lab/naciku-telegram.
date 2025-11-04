@@ -1,24 +1,34 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST')
+  if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });
+  }
 
   const botToken = process.env.BOT_TOKEN; // токен твого бота
   const chatId = process.env.CHAT_ID;     // твій chat_id
 
   const data = req.body || {};
-  const msg = `🛎 Нове бронювання
-👤 Ім’я: ${data.name}
-📞 Телефон: ${data.phone}
-📅 Заїзд: ${data.checkin}
-📅 Виїзд: ${data.checkout}
-🏨 Номер: ${data.room}`;
+  const msg = `
+📩 *Нове бронювання*  
+👤 Ім’я: ${data.name || '-'}
+📞 Телефон: ${data.phone || '-'}
+📅 Заїзд: ${data.checkin || '-'}
+📆 Виїзд: ${data.checkout || '-'}
+🏠 Номер: ${data.room || '-'}
+👥 Гостей: ${data.guests || '-'}
+💬 Коментар: ${data.comment || '-'}
+`;
 
   try {
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: msg }),
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: msg,
+        parse_mode: 'Markdown'
+      })
     });
+
     return res.status(200).json({ ok: true });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });
